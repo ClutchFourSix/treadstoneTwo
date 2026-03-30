@@ -1,19 +1,25 @@
+import os
 import requests
-from config.settings import Settings
+
 
 class TelegramBotV2:
-    def send(self, text):
-        url = f"https://api.telegram.org/bot{Settings.TELEGRAM_BOT_TOKEN}/sendMessage"
-        response = requests.post(
-            url,
-            json={
-                "chat_id": Settings.TELEGRAM_CHAT_ID,
-                "text": text,
-            },
-            timeout=30,
-        )
+    def __init__(self):
+        self.token = os.getenv("TELEGRAM_BOT_TOKEN")
+        self.chat_id = os.getenv("TELEGRAM_CHAT_ID")
+
+    def send(self, text: str):
+        if not text or text.strip() == "":
+            raise ValueError("Telegram message text is empty")
+
+        url = f"https://api.telegram.org/bot{self.token}/sendMessage"
+
+        payload = {
+            "chat_id": self.chat_id,
+            "text": text,
+        }
+
+        response = requests.post(url, json=payload)
+
+        print("Telegram response:", response.text)
+
         response.raise_for_status()
-        payload = response.json()
-        if not payload.get("ok", False):
-            raise RuntimeError(f"Telegram send failed: {payload}")
-        return payload
